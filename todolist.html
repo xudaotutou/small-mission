@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>todolist</title>
+    <style>
+        [type="text"] {
+            width: 20rem;
+            height: 3rem;
+            vertical-align: bottom;
+            font-size: 1.5rem;
+        }
+        #add {
+            width: 5rem;
+            height: 3.5rem;
+        }
+        li :nth-last-child(n){
+            float: left;
+            margin-left: 1rem;
+            text-align: center;
+        }
+        list :nth-child(n * 2) {
+            background-color: pink;
+        }
+        .select {
+            width: 2rem;
+        }
+        .content {
+            width: 10rem;
+        }
+        .ddl {
+            width: 8rem;
+        }
+        .priority {
+            width: 3rem;
+        }
+        .del {
+            width: 4rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>todolist</h1>
+    <h2>格式：事件-ddl(如2020.02.24)-优先级(如12)</h2>
+    <div id="inputbox"><input type="text" placeholder="请输入添加的事"><button id="add">添加</button></div>
+    <div>
+        <h2>添加的事情</h2>
+        <ol id="list" start="0">
+            <li>
+                <div class="select">勾选</div>
+                <div class="content">内容</div>
+                <div class="ddl">截止日期</div>
+                <div class="priority">优先级</div>
+                <a class="del">删除按钮</a>
+            </li>
+        </ol>
+        <button id="clear">一键删除</button>
+        <button id="priority-sort">优先级排序</button>
+        <button id="ddl-sort">截至日期排序</button>
+    </div>
+    <script>
+        const input = document.querySelector('[type="text"]');
+        const list = document.querySelector('#list');
+        const add = document.querySelector('#add');
+        const clear = document.querySelector('#clear');
+        const ddlSort = document.querySelector('#ddl-sort');
+        const prioritySort = document.querySelector('#priority-sort');
+        add.addEventListener('click',()=>{
+            let text = input.value
+            if(text) {
+                input.value = '';
+                if(!/\-\d{4}\.\d{2}.\d{2}\-\d+$/.test(text)) {
+                    alert('格式错误');
+                    return
+                }
+                // /* 清除输入框 */
+                const li = document.createElement('li');
+                let textarr = text.split('-');
+                // /* 文本内容 */
+                let content = textarr[0];
+                // /* 日期 */
+                let ddl = textarr[1];
+                // /* 优先级 */
+                let priority = textarr[2];
+                // /* 添加节点 */
+                list.append(li);
+                li.className = 'sort';
+                li.innerHTML = `
+                <div class="select"><input type="checkbox"></div>
+                <div class="content">${content}</div>
+                <div class="ddl">${ddl}</div>
+                <div class="priority">${priority}</div>
+                <a class="del"  href='javascript:;'>x</a>
+                `;
+                const del = li.querySelector('a');
+                // /* 单个删除 */
+                del.addEventListener('click',e=>{
+                    e.target.parentElement.remove();
+                });
+                input.value = '';
+            }
+        });
+        // 一键清除
+        clear.addEventListener('click',()=>{
+            list.innerHTML = `
+            <li>
+                <div class="select">勾选</div>
+                <div class="content">内容</div>
+                <div class="ddl">日期</div>
+                <div class="priority">优先级</div>
+                <a class="del">删除按钮</a>
+            </li>
+            `;
+        });
+        // 排序
+        function lisort(action) {
+            let sortlist = list.querySelectorAll('.sort');
+            // sortlist = [...sortlist].sort((a,b)=>b.querySelector('.priority').firstChild.textContent*1-a.querySelector('.priority').firstChild.textContent*1);
+            sortlist = action([...sortlist]);
+            console.log( sortlist[0].querySelector('.priority').firstChild.text);
+            list.innerHTML = `
+            <li>
+                <div class="select">勾选</div>
+                <div class="content">内容</div>
+                <div class="ddl">日期</div>
+                <div class="priority">优先级</div>
+                <a class="del">删除按钮</a>
+            </li>
+            `;
+            sortlist.forEach(elt=>{
+                list.append(elt);
+            })
+        }
+        // 优先级排序
+        prioritySort.addEventListener('click',()=>lisort(sortarray=>sortarray.sort((a,b)=>b.querySelector('.priority').firstChild.textContent*1-a.querySelector('.priority').firstChild.textContent*1)));
+        // 截止日期排序
+        // 要用字典序，有特殊字符
+        ddlSort.addEventListener('click',()=>lisort(sortarray=>sortarray.sort((a,b)=>b.querySelector('.ddl').firstChild.textContent < a.querySelector('.ddl').firstChild.textContent?1:-1)));
+    </script>
+</body>
+</html>
