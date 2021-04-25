@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>贪吃蛇</title>
+    <style>
+        .snake {
+            background-color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-container">
+
+    </div>
+    <script>
+        //最初参数
+        class InitParameter {
+            constructor() {
+                this.squareWidth = 10;
+                this.row = 30;
+                this.colum = 30;
+            }
+        }
+        // 构造方块类
+        class Square extends InitParameter {
+            constructor(x, y, name) {
+                super();
+                this.x = x * this.squareWidth;
+                this.y = y * this.squareWidth;
+                this.viewContent = document.createElement('div');
+                this.viewContent.classList.add(name);
+                this.parentEletmnt = document.querySelector('.game-container');
+            }
+            create() {
+                this.viewContent.style.cssText = `
+                position:absolute;width: ${this.squareWidth}px;
+                height: ${this.squareWidth}px;
+                left: ${this.x}px;
+                top: ${this.y}px;`;
+                this.parentEletmnt.append(this.viewContent);
+            }
+            remove() {
+                this.viewContent.remove();
+            }
+        }
+        let snake = new Square(2, 0, 'snake');
+        snake.create();
+        console.log(snake)
+    </script>
+</body>
+
+</html>
