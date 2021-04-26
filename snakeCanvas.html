@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>canvas贪吃蛇</title>
+</head>
+
+<body>
+    <div class="container">
+        <canvas></canvas>
+    </div>
+    <script>
+        const canvas = document.querySelector('canvas');
+        const ctx = canvas.getContext('2d');z
+        const gridWidth = 10;//边长
+        const gapWidth = 2;//缝隙
+        const row = 20;//行数
+        const colum = 40;//列数
+        canvas.width = colum * (gridWidth + gapWidth) - gapWidth;
+        canvas.height = row * (gridWidth + gapWidth) - gapWidth;
+        ctx.fillStyle = "black";
+        ctx.stroke = "green";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        class Grid {//绘制方块
+            constructor(x, y) {
+                this.position = {
+                        x: x,
+                        y: y 
+                    }
+                }
+            create() {
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(this.position.x, this.position.y, gridWidth, gridWidth);
+            }
+            delte() {
+                ctx.fillStyle = "#000";
+                ctx.fillRect(this.position.x, this.position.y , gridWidth, gridWidth);
+            }
+        }
+        class Snake {
+            constructor(x = 0,y = 0) {
+                this.snakeHead = null;
+                this.snakeTail = null;
+                this.position = {
+                        x: x,
+                        y: y 
+                    }
+                this.direction = Snake.direction.right;
+            }
+            init() {
+                let head = new Grid(gridWidth + gapWidth,(gridWidth + gapWidth) * 4);
+                //头的位置
+                this.position.x = gridWidth + gapWidth;
+                this.position.y = (gridWidth + gapWidth) * 4;
+                this.snakeHead = head;
+                this.snakeTail =head;
+                this.snakeHead.pre = null;
+                this.snakeTail.next = null;
+                head.create();
+                //创建一个新的头
+                this.unshift((gridWidth + gapWidth)*2,(gridWidth + gapWidth) * 4)
+                this.unshift((gridWidth + gapWidth)*3,(gridWidth + gapWidth) * 4)
+                this.unshift((gridWidth + gapWidth)*4,(gridWidth + gapWidth) * 4)
+            }
+            unshift(x,y) {//直接在头添加
+                let snakeNewHead = new Grid(x,y);
+                snakeNewHead.create();
+                snakeNewHead.direction = this.direction;
+                snakeNewHead.next = this.snakeHead;
+                this.snakeHead.pre = snakeNewHead;
+                snakeNewHead.pre = null;
+                this.position.x = x;
+                this.position.y = y;
+                this.snakeHead = snakeNewHead;
+            }
+            pop() {//删掉尾巴
+                let elt = this.snakeTail;
+                let popobj = new Grid(this.snakeTail.position.x,this.snakeTail.position.y);
+                popobj.delte();
+                this.snakeTail = this.snakeTail.pre;
+                this.snakeTail.next = null;
+                return elt;
+            }
+            move() {
+                this.unshift((this.position.x +this.snakeHead.direction.x * (gridWidth + gapWidth)),(this.position.y + this.snakeHead.direction.y * (gridWidth + gapWidth)));
+                this.pop();
+            }
+            static direction = {
+                //都应该是动一格，而不是1px
+                right: {
+                    x: 1,
+                    y: 0
+                },
+                down: {
+                    x: 0,
+                    y: -1
+                },
+                left: {
+                    x: -1,
+                    y: 0
+                },
+                up: {
+                    x: 0,
+                    y: 1
+                }
+            }
+        }
+        let snake = new Snake();
+        snake.init();
+        // let timer = setInterval(()=>snake.move(),150);
+    </script>
+</body>
+
+</html>
