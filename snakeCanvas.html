@@ -6,6 +6,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>canvas贪吃蛇</title>
+    <style>
+        .container {
+            display: flex;
+            justify-content: center;
+        }
+    </style>
 </head>
 
 <body>
@@ -14,7 +20,7 @@
     </div>
     <script>
         const canvas = document.querySelector('canvas');
-        const ctx = canvas.getContext('2d');z
+        const ctx = canvas.getContext('2d');
         const gridWidth = 10;//边长
         const gapWidth = 2;//缝隙
         const row = 20;//行数
@@ -27,46 +33,46 @@
         class Grid {//绘制方块
             constructor(x, y) {
                 this.position = {
-                        x: x,
-                        y: y 
-                    }
+                    x: x,
+                    y: y
                 }
+            }
             create() {
                 ctx.fillStyle = '#fff';
                 ctx.fillRect(this.position.x, this.position.y, gridWidth, gridWidth);
             }
             delte() {
                 ctx.fillStyle = "#000";
-                ctx.fillRect(this.position.x, this.position.y , gridWidth, gridWidth);
+                ctx.fillRect(this.position.x, this.position.y, gridWidth + gapWidth, gridWidth + gapWidth);
             }
         }
         class Snake {
-            constructor(x = 0,y = 0) {
+            constructor(x = 0, y = 0) {
                 this.snakeHead = null;
                 this.snakeTail = null;
                 this.position = {
-                        x: x,
-                        y: y 
-                    }
+                    x: x,
+                    y: y
+                }
                 this.direction = Snake.direction.right;
             }
             init() {
-                let head = new Grid(gridWidth + gapWidth,(gridWidth + gapWidth) * 4);
+                let head = new Grid(gridWidth + gapWidth, (gridWidth + gapWidth) * 4);
                 //头的位置
                 this.position.x = gridWidth + gapWidth;
                 this.position.y = (gridWidth + gapWidth) * 4;
                 this.snakeHead = head;
-                this.snakeTail =head;
+                this.snakeTail = head;
                 this.snakeHead.pre = null;
                 this.snakeTail.next = null;
                 head.create();
                 //创建一个新的头
-                this.unshift((gridWidth + gapWidth)*2,(gridWidth + gapWidth) * 4)
-                this.unshift((gridWidth + gapWidth)*3,(gridWidth + gapWidth) * 4)
-                this.unshift((gridWidth + gapWidth)*4,(gridWidth + gapWidth) * 4)
+                this.unshift((gridWidth + gapWidth) * 2, (gridWidth + gapWidth) * 4)
+                this.unshift((gridWidth + gapWidth) * 3, (gridWidth + gapWidth) * 4)
+                this.unshift((gridWidth + gapWidth) * 4, (gridWidth + gapWidth) * 4)
             }
-            unshift(x,y) {//直接在头添加
-                let snakeNewHead = new Grid(x,y);
+            unshift(x, y) {//直接在头添加
+                let snakeNewHead = new Grid(x, y);
                 snakeNewHead.create();
                 snakeNewHead.direction = this.direction;
                 snakeNewHead.next = this.snakeHead;
@@ -78,39 +84,96 @@
             }
             pop() {//删掉尾巴
                 let elt = this.snakeTail;
-                let popobj = new Grid(this.snakeTail.position.x,this.snakeTail.position.y);
+                let popobj = new Grid(this.snakeTail.position.x, this.snakeTail.position.y);
                 popobj.delte();
                 this.snakeTail = this.snakeTail.pre;
                 this.snakeTail.next = null;
                 return elt;
             }
             move() {
-                this.unshift((this.position.x +this.snakeHead.direction.x * (gridWidth + gapWidth)),(this.position.y + this.snakeHead.direction.y * (gridWidth + gapWidth)));
+                //获取下一个位置
+                let nextposition = [(this.position.x + this.direction.x * (gridWidth + gapWidth)), (this.position.y + this.direction.y * (gridWidth + gapWidth))];
+                this.unshift(nextposition[0], nextposition[1]);
                 this.pop();
             }
             static direction = {
                 //都应该是动一格，而不是1px
-                right: {
-                    x: 1,
-                    y: 0
-                },
-                down: {
-                    x: 0,
-                    y: -1
-                },
-                left: {
-                    x: -1,
-                    y: 0
-                },
-                up: {
-                    x: 0,
-                    y: 1
-                }
+                right: { x: 1, y: 0 },
+                down: { x: 0, y: 1 },
+                left: { x: -1, y: 0 },
+                up: { x: 0, y: -1 }
             }
         }
         let snake = new Snake();
-        snake.init();
-        // let timer = setInterval(()=>snake.move(),150);
+        class Game {
+            constructor() {
+                this.intervalID = null;
+                this.foodposition = null;
+            }
+            start() {
+                snake.init();
+                this.createFood();
+                this.mainlogic();
+                this.intervalID = setInterval(() => this.mainlogic(this.foodposition), 150);
+                window.addEventListener('keydown', e => {
+                    if (e.key === 'ArrowUp' && snake.direction !== Snake.direction.down) snake.direction = Snake.direction.up;
+                    if (e.key === 'ArrowRight' && snake.direction !== Snake.direction.left) snake.direction = Snake.direction.right;
+                    if (e.key === 'ArrowDown' && snake.direction !== Snake.direction.up) snake.direction = Snake.direction.down;
+                    if (e.key === 'ArrowLeft' && snake.direction !== Snake.direction.right) snake.direction = Snake.direction.left;
+                });
+            }
+            mainlogic(position) {//用了定时器的话this会指向windows
+                if (position !== null && position !== undefined) {
+                    let nextposition = [(snake.position.x + snake.snakeHead.direction.x * (gridWidth + gapWidth)), (snake.position.y + snake.snakeHead.direction.y * (gridWidth + gapWidth))];
+                    let foodposition = position;
+                    if (nextposition[0] === foodposition[0] && nextposition[1] === foodposition[1]) {//吃水果
+                        snake.unshift(nextposition[0], nextposition[1]);
+                        snake.pop(nextposition[0],nextposition[1]);
+                        createFood();
+                    } else if (nextposition[0] < 0 || nextposition[1] < 0 || nextposition[0] >= colum * (gridWidth + gapWidth) || nextposition[1] >= row * (gridWidth + gapWidth)) this.over();
+                    else {
+                        let pointer = snake.snakeHead;
+                        while (pointer !== null) {//遍历链表
+                            if (pointer.position.x === foodposition[0] && pointer.position.y === foodposition[1]) this.over();
+                            pointer = pointer.next;
+                        }
+                        snake.move();
+                    }
+                }
+            }
+
+            pause() {
+                clearInterval(this.intervalID);
+            }
+            over() {
+                this.pause();
+                alert('你死了');
+            }
+            createFood() {
+                let foodX;
+                let foodY;
+                let flag = true;
+                let pointer = snake.snakeHead;
+                while (flag) {
+                    foodX = Math.round(Math.random() * (colum - 1)) * (gridWidth + gapWidth);
+                    foodY = Math.round(Math.random() * (row - 1)) * (gridWidth + gapWidth);
+                    while (pointer !== null) {//遍历链表
+                        flag = false;
+                        if ([pointer.position.x, pointer.position.y] === [foodX, foodY]) {
+                            flag = true;
+                            pointer = snake.snakeHead;
+                            break;
+                        }
+                        pointer = pointer.next;
+                    }
+                }
+                let food = new Grid(foodX, foodY);
+                food.create();
+                this.foodposition = [foodX, foodY];
+            }
+        }
+        let game = new Game();
+        game.start();
     </script>
 </body>
 
