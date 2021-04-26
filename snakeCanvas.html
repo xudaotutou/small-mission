@@ -128,7 +128,6 @@
                     let foodposition = position;
                     if (nextposition[0] === foodposition[0] && nextposition[1] === foodposition[1]) {//吃水果
                         snake.unshift(nextposition[0], nextposition[1]);
-                        snake.pop(nextposition[0],nextposition[1]);
                         createFood();
                     } else if (nextposition[0] < 0 || nextposition[1] < 0 || nextposition[0] >= colum * (gridWidth + gapWidth) || nextposition[1] >= row * (gridWidth + gapWidth)) this.over();
                     else {
