@@ -114,29 +114,52 @@
                 snake.init();
                 this.createFood();
                 this.mainlogic();
-                this.intervalID = setInterval(() => this.mainlogic(this.foodposition), 150);
+                this.intervalID = setInterval(this.mainlogic.bind(this), 150);
                 window.addEventListener('keydown', e => {
-                    if (e.key === 'ArrowUp' && snake.direction !== Snake.direction.down) snake.direction = Snake.direction.up;
-                    if (e.key === 'ArrowRight' && snake.direction !== Snake.direction.left) snake.direction = Snake.direction.right;
-                    if (e.key === 'ArrowDown' && snake.direction !== Snake.direction.up) snake.direction = Snake.direction.down;
-                    if (e.key === 'ArrowLeft' && snake.direction !== Snake.direction.right) snake.direction = Snake.direction.left;
+                    if (e.key === 'ArrowUp' && snake.direction !== Snake.direction.down) {
+                        snake.direction = Snake.direction.up;
+                        clearInterval(this.intervalID);
+                        this.intervalID = setInterval(this.mainlogic.bind(this), 150);
+                    }
+                    if (e.key === 'ArrowRight' && snake.direction !== Snake.direction.left) {
+                        snake.direction = Snake.direction.right;
+                        clearInterval(this.intervalID);
+                        this.intervalID = setInterval(this.mainlogic.bind(this), 150);
+                    }
+                    if (e.key === 'ArrowDown' && snake.direction !== Snake.direction.up) {
+                        snake.direction = Snake.direction.down;
+                        clearInterval(this.intervalID);
+                        this.intervalID = setInterval(this.mainlogic.bind(this), 150);
+                    }
+                    if (e.key === 'ArrowLeft' && snake.direction !== Snake.direction.right) {
+                        snake.direction = Snake.direction.left;
+                        clearInterval(this.intervalID);
+                        this.intervalID = setInterval(this.mainlogic.bind(this), 150);
+                    }
                 });
             }
-            mainlogic(position) {//用了定时器的话this会指向windows
-                if (position !== null && position !== undefined) {
+            mainlogic() {
+                if (this.foodposition !== null && this.foodposition !== undefined) {
                     let nextposition = [(snake.position.x + snake.snakeHead.direction.x * (gridWidth + gapWidth)), (snake.position.y + snake.snakeHead.direction.y * (gridWidth + gapWidth))];
-                    let foodposition = position;
-                    if (nextposition[0] === foodposition[0] && nextposition[1] === foodposition[1]) {//吃水果
+                    //有个bug，贴着转身吃水果会吃不到,应该是点击时定时器来不及更新nextposition
+                    if (nextposition[0] === this.foodposition[0] && nextposition[1] === this.foodposition[1]) {//吃水果
                         snake.unshift(nextposition[0], nextposition[1]);
-                        createFood();
-                    } else if (nextposition[0] < 0 || nextposition[1] < 0 || nextposition[0] >= colum * (gridWidth + gapWidth) || nextposition[1] >= row * (gridWidth + gapWidth)) this.over();
-                    else {
-                        let pointer = snake.snakeHead;
-                        while (pointer !== null) {//遍历链表
-                            if (pointer.position.x === foodposition[0] && pointer.position.y === foodposition[1]) this.over();
-                            pointer = pointer.next;
+                        this.createFood();
+                    } else {
+                        if (nextposition[0] < - (gridWidth + gapWidth) || nextposition[1] < -(gridWidth + gapWidth) || nextposition[0] > colum * (gridWidth + gapWidth) || nextposition[1] > row * (gridWidth + gapWidth)) {
+                            console.log('撞墙')
+                            this.over();
+                        } else {
+                            let pointer = snake.snakeHead;
+                            while (pointer !== null) {//遍历链表
+                                if (pointer.position.x === nextposition[0] && pointer.position.y === nextposition[1]) {
+                                    console.log('撞死自己');
+                                    this.over();
+                                }
+                                pointer = pointer.next;
+                            }
+                            snake.move();//走一下
                         }
-                        snake.move();
                     }
                 }
             }
@@ -156,9 +179,11 @@
                 while (flag) {
                     foodX = Math.round(Math.random() * (colum - 1)) * (gridWidth + gapWidth);
                     foodY = Math.round(Math.random() * (row - 1)) * (gridWidth + gapWidth);
+                    console.log(flag, pointer.position, foodX, foodY);
                     while (pointer !== null) {//遍历链表
                         flag = false;
-                        if ([pointer.position.x, pointer.position.y] === [foodX, foodY]) {
+                        //只要有一个节点的坐标与食物坐标相同，就得重毁食物的位置
+                        if (pointer.position.x === foodX && pointer.position.y === foodY) {
                             flag = true;
                             pointer = snake.snakeHead;
                             break;
